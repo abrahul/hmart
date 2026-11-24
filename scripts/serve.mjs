@@ -3,7 +3,16 @@ import { readFile, stat } from "node:fs/promises";
 import { extname, join, resolve } from "node:path";
 
 const root = resolve(import.meta.dirname, "..", "dist");
-const types = { ".html": "text/html; charset=utf-8", ".css": "text/css; charset=utf-8", ".js": "text/javascript; charset=utf-8" };
+const types = {
+  ".html": "text/html; charset=utf-8",
+  ".css": "text/css; charset=utf-8",
+  ".js": "text/javascript; charset=utf-8",
+  ".svg": "image/svg+xml",
+  ".png": "image/png",
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".webp": "image/webp"
+};
 const server = createServer(async (request, response) => {
   try {
     let pathname = new URL(request.url, "http://localhost").pathname;
