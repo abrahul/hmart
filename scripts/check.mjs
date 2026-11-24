@@ -2,13 +2,15 @@ import { access, readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
 const root = resolve(import.meta.dirname, "..");
-const required = ["index.html", "app/globals.css", "app/site.js", "assets/hmart-logo-premium.svg", "assets/hmart-logo-original.png"];
+const required = ["index.html", "app/globals.css", "app/site.js", "assets/hmart-logo-premium.svg", "assets/hmart-logo-original.png", "vercel.json"];
 await Promise.all(required.map((file) => access(resolve(root, file))));
-const [html, css, js] = await Promise.all([
+const [html, css, js, vercelConfig] = await Promise.all([
   readFile(resolve(root, "index.html"), "utf8"),
   readFile(resolve(root, "app/globals.css"), "utf8"),
-  readFile(resolve(root, "app/site.js"), "utf8")
+  readFile(resolve(root, "app/site.js"), "utf8"),
+  readFile(resolve(root, "vercel.json"), "utf8")
 ]);
+const vercel = JSON.parse(vercelConfig);
 const checks = [
   [html.includes("+91 79944 40164"), "phone number"], [html.includes("hmartbuildingsolutions@gmail.com"), "email"],
   [html.includes("Thonnakkal"), "address"], [html.includes("Kooraveettil Agencies"), "sister concerns"],
@@ -16,7 +18,8 @@ const checks = [
   [html.includes('aria-label="Main navigation"'), "navigation label"], [html.includes('type="application/ld+json"'), "structured data"],
   [css.includes("#103c31") && css.includes("#ae7b4f"), "forest and bronze palette"], [js.includes('data-material'), "material enquiry handoff"],
   [html.includes("Site inspection & consultation"), "site inspection service"], [html.includes("Waterproofing"), "waterproofing service"],
-  [html.includes('id="hmart-logo-lockup"') && html.includes('class="brand-logo"'), "visible premium official logo lockup"]
+  [html.includes('id="hmart-logo-lockup"') && html.includes('class="brand-logo"'), "visible premium official logo lockup"],
+  [vercel.outputDirectory === "dist", "Vercel output directory"]
 ];
 const failed = checks.filter(([ok]) => !ok);
 if (failed.length) { console.error(`Checks failed: ${failed.map(([, name]) => name).join(", ")}`); process.exit(1); }
