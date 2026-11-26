@@ -77,7 +77,7 @@ function mountThemePreview() {
   preview.className = "theme-preview";
   preview.dataset.previewControl = "theme-picker";
   preview.innerHTML = `
-    <button class="theme-preview-toggle" type="button" aria-expanded="false" aria-controls="theme-preview-panel">
+    <button class="theme-preview-toggle" type="button" aria-expanded="false" aria-controls="theme-preview-panel" aria-haspopup="dialog">
       <span>Client design preview</span><strong data-theme-current>${themeDefinitions[currentTheme].name}</strong>
     </button>
     <div class="theme-preview-panel" id="theme-preview-panel" role="dialog" aria-label="Choose a visual direction" hidden>
@@ -91,7 +91,9 @@ function mountThemePreview() {
       <div class="theme-preview-foot"><button type="button" data-theme-reset>Return to current baseline</button></div>
       <p class="sr-status" data-theme-status role="status"></p>
     </div>`;
-  document.body.append(preview);
+  const siteHeader = document.querySelector(".site-header");
+  if (siteHeader) siteHeader.before(preview);
+  else document.body.prepend(preview);
 
   const toggle = preview.querySelector(".theme-preview-toggle");
   const panel = preview.querySelector(".theme-preview-panel");
@@ -104,10 +106,17 @@ function mountThemePreview() {
   };
   toggle.addEventListener("click", () => setOpen(toggle.getAttribute("aria-expanded") !== "true"));
   close.addEventListener("click", () => { setOpen(false); toggle.focus(); });
-  preview.querySelectorAll("[data-theme-choice]").forEach((button) => button.addEventListener("click", () => setTheme(button.dataset.themeChoice)));
+  preview.querySelectorAll("[data-theme-choice]").forEach((button) => button.addEventListener("click", () => {
+    setTheme(button.dataset.themeChoice);
+    setOpen(false);
+    toggle.focus();
+  }));
   preview.querySelector("[data-theme-reset]").addEventListener("click", () => setTheme("industrial"));
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && preview.classList.contains("open")) { setOpen(false); toggle.focus(); }
+  });
+  document.addEventListener("pointerdown", (event) => {
+    if (preview.classList.contains("open") && !preview.contains(event.target)) setOpen(false);
   });
   setTheme(currentTheme, { updateUrl: false });
 }
