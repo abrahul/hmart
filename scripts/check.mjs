@@ -19,9 +19,9 @@ const checks = [
   [html.includes("Thonnakkal"), "address"], [html.includes("Kooraveettil Agencies"), "sister concerns"],
   [html.includes("Illustrative stock photography"), "stock label"], [js.includes("wa.me/917994440164?text="), "WhatsApp form"],
   [html.includes('aria-label="Main navigation"'), "navigation label"], [html.includes('type="application/ld+json"'), "structured data"],
-  [css.includes("#103c31") && css.includes("#ae7b4f"), "forest and bronze palette"],
+  [css.includes("#c8432f") && css.includes("#17201e"), "oxide and graphite palette"],
   [html.includes("Site inspection & consultation"), "site inspection service"], [html.includes("Waterproofing"), "waterproofing service"],
-  [html.includes('id="hmart-logo-lockup"') && html.includes('class="brand-logo"'), "visible premium official logo lockup"],
+  [html.includes('src="./assets/hmart-logo-original.png"') && html.includes("brand-logo-official"), "exact official logo asset"],
   [home.includes("materials.html") && materialsPage.includes("services.html") && servicesPage.includes("index.html"), "three-page navigation"],
   [js.includes("services.html?material=") && js.includes('params.get("material")'), "cross-page material enquiry"],
   [vercel.outputDirectory === "dist", "Vercel output directory"]
