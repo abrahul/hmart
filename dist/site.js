@@ -21,6 +21,99 @@ const materials = [
 ];
 
 const params = new URLSearchParams(window.location.search);
+const themeDefinitions = {
+  editorial: { name: "Architectural Editorial", description: "Asymmetric, warm and magazine-led.", colors: ["#f4f0e8", "#171715", "#a9633b"], meta: "#171715" },
+  tropical: { name: "Tropical Modern", description: "Kerala light, limestone and greenery.", colors: ["#eee8dc", "#61705a", "#b75e42"], meta: "#485448" },
+  industrial: { name: "Industrial Precision", description: "Technical grids, graphite and signal colour.", colors: ["#171d1c", "#77807d", "#ff5a2a"], meta: "#171d1c" },
+  gallery: { name: "Gallery Minimal", description: "Monochrome, immersive and deliberately sparse.", colors: ["#f5f5f2", "#111111", "#9faaa3"], meta: "#111111" },
+  atelier: { name: "Material Atelier", description: "Tactile clay, stone and curated layers.", colors: ["#e9dfd1", "#8b4f3d", "#6f7770"], meta: "#6b493d" },
+  future: { name: "Future Form", description: "Cobalt modules and dynamic geometry.", colors: ["#f8fbff", "#1447e6", "#081a3a"], meta: "#1447e6" }
+};
+let currentTheme = window.HMART_THEME?.theme || "industrial";
+
+function themeHref(rawHref) {
+  const url = new URL(rawHref, window.location.href);
+  url.searchParams.set("theme", currentTheme);
+  const file = url.pathname.split("/").pop() || "index.html";
+  return `./${file}${url.search}${url.hash}`;
+}
+
+function updateInternalLinks() {
+  document.querySelectorAll("a[href]").forEach((link) => {
+    const href = link.getAttribute("href");
+    if (!href || href.startsWith("#") || href.startsWith("tel:") || href.startsWith("mailto:")) return;
+    const url = new URL(href, window.location.href);
+    if (url.origin !== window.location.origin || (!url.pathname.endsWith(".html") && !url.pathname.endsWith("/"))) return;
+    link.setAttribute("href", themeHref(href));
+  });
+}
+
+function setTheme(theme, { updateUrl = true } = {}) {
+  if (!themeDefinitions[theme]) return;
+  currentTheme = theme;
+  document.documentElement.dataset.theme = theme;
+  document.documentElement.style.colorScheme = theme === "industrial" || theme === "gallery" ? "dark" : "light";
+  try { window.localStorage.setItem("hmart-preview-theme", theme); } catch (_) { /* storage can be unavailable */ }
+  if (updateUrl) {
+    const url = new URL(window.location.href);
+    url.searchParams.set("theme", theme);
+    window.history.replaceState({}, "", url);
+  }
+  document.querySelector('meta[name="theme-color"]')?.setAttribute("content", themeDefinitions[theme].meta);
+  document.querySelectorAll("[data-theme-choice]").forEach((button) => {
+    const active = button.dataset.themeChoice === theme;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-pressed", String(active));
+  });
+  const currentName = document.querySelector("[data-theme-current]");
+  if (currentName) currentName.textContent = themeDefinitions[theme].name;
+  const status = document.querySelector("[data-theme-status]");
+  if (status) status.textContent = `${themeDefinitions[theme].name} applied.`;
+  updateInternalLinks();
+}
+
+function mountThemePreview() {
+  const preview = document.createElement("aside");
+  preview.className = "theme-preview";
+  preview.dataset.previewControl = "theme-picker";
+  preview.innerHTML = `
+    <button class="theme-preview-toggle" type="button" aria-expanded="false" aria-controls="theme-preview-panel">
+      <span>Client design preview</span><strong data-theme-current>${themeDefinitions[currentTheme].name}</strong>
+    </button>
+    <div class="theme-preview-panel" id="theme-preview-panel" role="dialog" aria-label="Choose a visual direction" hidden>
+      <div class="theme-preview-head"><div><span>HMART / Design preview</span><h2>Choose a direction</h2></div><button class="theme-preview-close" type="button" aria-label="Close theme picker">Close</button></div>
+      <div class="theme-options">${Object.entries(themeDefinitions).map(([key, theme], index) => `
+        <button type="button" class="theme-option" data-theme-choice="${key}" aria-pressed="false">
+          <span class="theme-index">0${index + 1}</span>
+          <span class="theme-option-copy"><strong>${theme.name}</strong><small>${theme.description}</small></span>
+          <span class="theme-swatches" aria-hidden="true">${theme.colors.map((color) => `<i style="background:${color}"></i>`).join("")}</span>
+        </button>`).join("")}</div>
+      <div class="theme-preview-foot"><button type="button" data-theme-reset>Return to current baseline</button><span>Preview control — remove before launch</span></div>
+      <p class="sr-status" data-theme-status role="status"></p>
+    </div>`;
+  document.body.append(preview);
+
+  const toggle = preview.querySelector(".theme-preview-toggle");
+  const panel = preview.querySelector(".theme-preview-panel");
+  const close = preview.querySelector(".theme-preview-close");
+  const setOpen = (open) => {
+    toggle.setAttribute("aria-expanded", String(open));
+    panel.hidden = !open;
+    preview.classList.toggle("open", open);
+    if (open) close.focus();
+  };
+  toggle.addEventListener("click", () => setOpen(toggle.getAttribute("aria-expanded") !== "true"));
+  close.addEventListener("click", () => { setOpen(false); toggle.focus(); });
+  preview.querySelectorAll("[data-theme-choice]").forEach((button) => button.addEventListener("click", () => setTheme(button.dataset.themeChoice)));
+  preview.querySelector("[data-theme-reset]").addEventListener("click", () => setTheme("industrial"));
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && preview.classList.contains("open")) { setOpen(false); toggle.focus(); }
+  });
+  setTheme(currentTheme, { updateUrl: false });
+}
+
+mountThemePreview();
+
 const grid = document.querySelector(".material-grid");
 const filterButtons = [...document.querySelectorAll(".filter-bar button")];
 
@@ -32,7 +125,7 @@ function renderMaterials(filter = "All") {
       <span class="material-type">${category}</span>
       <h3>${name}</h3>
       <p>${note}</p>
-      <a href="./services.html?material=${encodeURIComponent(name)}#enquire" aria-label="Enquire about ${name}">Add to enquiry</a>
+      <a href="${themeHref(`./services.html?material=${encodeURIComponent(name)}#enquire`)}" aria-label="Enquire about ${name}">Add to enquiry</a>
     </article>
   `).join("");
 }
@@ -52,6 +145,10 @@ if (grid) {
       button.classList.add("active");
       button.setAttribute("aria-pressed", "true");
       renderMaterials(button.dataset.filter);
+      const url = new URL(window.location.href);
+      url.searchParams.set("filter", button.dataset.filter);
+      url.searchParams.set("theme", currentTheme);
+      window.history.replaceState({}, "", url);
     });
   });
   renderMaterials(initialFilter);
@@ -114,3 +211,4 @@ const observer = new IntersectionObserver((entries) => {
 
 document.querySelectorAll(".reveal").forEach((element) => observer.observe(element));
 document.querySelectorAll(".year").forEach((element) => { element.textContent = new Date().getFullYear(); });
+updateInternalLinks();

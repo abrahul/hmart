@@ -10,6 +10,7 @@ await cp(resolve(root, "materials.html"), resolve(dist, "materials.html"));
 await cp(resolve(root, "services.html"), resolve(dist, "services.html"));
 await cp(resolve(root, "app", "globals.css"), resolve(dist, "styles.css"));
 await cp(resolve(root, "app", "site.js"), resolve(dist, "site.js"));
+await cp(resolve(root, "app", "theme-init.js"), resolve(dist, "theme-init.js"));
 await cp(resolve(root, "assets"), resolve(dist, "assets"), { recursive: true });
 const html = await readFile(resolve(dist, "index.html"), "utf8");
 await writeFile(resolve(dist, "404.html"), html);
