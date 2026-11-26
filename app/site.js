@@ -24,7 +24,7 @@ const params = new URLSearchParams(window.location.search);
 const themeDefinitions = {
   editorial: { name: "Architectural Editorial", description: "Asymmetric, warm and magazine-led.", colors: ["#f4f0e8", "#171715", "#a9633b"], meta: "#171715" },
   tropical: { name: "Tropical Modern", description: "Kerala light, limestone and greenery.", colors: ["#eee8dc", "#61705a", "#b75e42"], meta: "#485448" },
-  industrial: { name: "Industrial Precision", description: "Technical grids, graphite and signal colour.", colors: ["#171d1c", "#77807d", "#ff5a2a"], meta: "#171d1c" },
+  industrial: { name: "Industrial Precision", description: "Application-led, high-impact material catalogue.", colors: ["#171d1c", "#f4f3ee", "#ff5a2a"], meta: "#171d1c" },
   gallery: { name: "Gallery Minimal", description: "Monochrome, immersive and deliberately sparse.", colors: ["#f5f5f2", "#111111", "#9faaa3"], meta: "#111111" },
   atelier: { name: "Material Atelier", description: "Tactile clay, stone and curated layers.", colors: ["#e9dfd1", "#8b4f3d", "#6f7770"], meta: "#6b493d" },
   future: { name: "Future Form", description: "Cobalt modules and dynamic geometry.", colors: ["#f8fbff", "#1447e6", "#081a3a"], meta: "#1447e6" }
