@@ -65,8 +65,10 @@ function setTheme(theme, { updateUrl = true } = {}) {
     button.classList.toggle("active", active);
     button.setAttribute("aria-pressed", String(active));
   });
-  const currentName = document.querySelector("[data-theme-current]");
-  if (currentName) currentName.textContent = themeDefinitions[theme].name;
+  document.querySelectorAll("[data-theme-current]").forEach((currentName) => { currentName.textContent = themeDefinitions[theme].name; });
+  document.querySelectorAll("[data-theme-current-swatches]").forEach((swatches) => {
+    swatches.innerHTML = themeDefinitions[theme].colors.map((color) => `<i style="background:${color}"></i>`).join("");
+  });
   const status = document.querySelector("[data-theme-status]");
   if (status) status.textContent = `${themeDefinitions[theme].name} applied.`;
   updateInternalLinks();
@@ -78,7 +80,7 @@ function mountThemePreview() {
   preview.dataset.previewControl = "theme-picker";
   preview.innerHTML = `
     <button class="theme-preview-toggle" type="button" aria-expanded="false" aria-controls="theme-preview-panel" aria-haspopup="dialog">
-      <span>Client design preview</span><strong data-theme-current>${themeDefinitions[currentTheme].name}</strong>
+      <span>Design preview</span><span class="theme-preview-current"><strong data-theme-current>${themeDefinitions[currentTheme].name}</strong><span class="theme-preview-current-swatches" data-theme-current-swatches aria-hidden="true">${themeDefinitions[currentTheme].colors.map((color) => `<i style="background:${color}"></i>`).join("")}</span></span>
     </button>
     <div class="theme-preview-panel" id="theme-preview-panel" role="dialog" aria-label="Choose a visual direction" hidden>
       <div class="theme-preview-head"><div><span>HMART / Design preview</span><h2>Choose a direction</h2></div><button class="theme-preview-close" type="button" aria-label="Close theme picker">Close</button></div>
