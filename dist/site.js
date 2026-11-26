@@ -88,7 +88,7 @@ function mountThemePreview() {
           <span class="theme-option-copy"><strong>${theme.name}</strong><small>${theme.description}</small></span>
           <span class="theme-swatches" aria-hidden="true">${theme.colors.map((color) => `<i style="background:${color}"></i>`).join("")}</span>
         </button>`).join("")}</div>
-      <div class="theme-preview-foot"><button type="button" data-theme-reset>Return to current baseline</button><span>Preview control — remove before launch</span></div>
+      <div class="theme-preview-foot"><button type="button" data-theme-reset>Return to current baseline</button></div>
       <p class="sr-status" data-theme-status role="status"></p>
     </div>`;
   document.body.append(preview);
