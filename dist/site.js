@@ -75,12 +75,12 @@ function setTheme(theme, { updateUrl = true } = {}) {
 }
 
 function mountThemePreview() {
-  const preview = document.createElement("aside");
+  const preview = document.createElement("div");
   preview.className = "theme-preview";
   preview.dataset.previewControl = "theme-picker";
   preview.innerHTML = `
     <button class="theme-preview-toggle" type="button" aria-expanded="false" aria-controls="theme-preview-panel" aria-haspopup="dialog">
-      <span>Design preview</span><span class="theme-preview-current"><strong data-theme-current>${themeDefinitions[currentTheme].name}</strong><span class="theme-preview-current-swatches" data-theme-current-swatches aria-hidden="true">${themeDefinitions[currentTheme].colors.map((color) => `<i style="background:${color}"></i>`).join("")}</span></span>
+      <span>Select theme</span><span class="theme-preview-current"><strong data-theme-current>${themeDefinitions[currentTheme].name}</strong><span class="theme-preview-current-swatches" data-theme-current-swatches aria-hidden="true">${themeDefinitions[currentTheme].colors.map((color) => `<i style="background:${color}"></i>`).join("")}</span></span>
     </button>
     <div class="theme-preview-panel" id="theme-preview-panel" role="dialog" aria-label="Choose a visual direction" hidden>
       <div class="theme-preview-head"><div><span>HMART / Design preview</span><h2>Choose a direction</h2></div><button class="theme-preview-close" type="button" aria-label="Close theme picker">Close</button></div>
@@ -93,8 +93,10 @@ function mountThemePreview() {
       <div class="theme-preview-foot"><button type="button" data-theme-reset>Return to current baseline</button></div>
       <p class="sr-status" data-theme-status role="status"></p>
     </div>`;
-  const siteHeader = document.querySelector(".site-header");
-  if (siteHeader) siteHeader.before(preview);
+  const mainNav = document.querySelector(".nav");
+  const navContact = mainNav?.querySelector(".nav-contact");
+  if (navContact) navContact.before(preview);
+  else if (mainNav) mainNav.append(preview);
   else document.body.prepend(preview);
 
   const toggle = preview.querySelector(".theme-preview-toggle");
