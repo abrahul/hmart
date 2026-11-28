@@ -1,37 +1,58 @@
-import { access, readFile } from "node:fs/promises";
+import { access, readFile, readdir } from "node:fs/promises";
 import { resolve } from "node:path";
 
+await import("./render.mjs");
+
 const root = resolve(import.meta.dirname, "..");
-const required = ["index.html", "materials.html", "services.html", "app/globals.css", "app/site.js", "app/theme-init.js", "assets/hmart-logo-premium.svg", "assets/hmart-logo-original.png", "vercel.json"];
-await Promise.all(required.map((file) => access(resolve(root, file))));
-const [home, materialsPage, servicesPage, css, js, themeInit, vercelConfig] = await Promise.all([
-  readFile(resolve(root, "index.html"), "utf8"),
-  readFile(resolve(root, "materials.html"), "utf8"),
-  readFile(resolve(root, "services.html"), "utf8"),
-  readFile(resolve(root, "app/globals.css"), "utf8"),
-  readFile(resolve(root, "app/site.js"), "utf8"),
-  readFile(resolve(root, "app/theme-init.js"), "utf8"),
-  readFile(resolve(root, "vercel.json"), "utf8")
-]);
-const html = [home, materialsPage, servicesPage].join("\n");
-const vercel = JSON.parse(vercelConfig);
+const dist = resolve(root, "dist");
+const routes = ["", "roofing-materials", "construction-materials", "services", "contact-us", "about-us", "blog"];
+const pageFiles = routes.map((route) => resolve(dist, route, "index.html"));
+const required = [...pageFiles, resolve(dist, "styles.css"), resolve(dist, "site.js"), resolve(dist, "sitemap.xml"), resolve(dist, "robots.txt"), resolve(root, "content-audit.md")];
+await Promise.all(required.map((file) => access(file)));
+
+const pages = await Promise.all(pageFiles.map((file) => readFile(file, "utf8")));
+const html = pages.join("\n");
+const css = await readFile(resolve(dist, "styles.css"), "utf8");
+const js = await readFile(resolve(dist, "site.js"), "utf8");
+const sitemap = await readFile(resolve(dist, "sitemap.xml"), "utf8");
+const audit = await readFile(resolve(root, "content-audit.md"), "utf8");
+const productAssets = await readdir(resolve(dist, "assets", "products"));
+const validRoutePaths = new Set(routes.map((route) => route ? `/${route}` : "/"));
+const internalHrefs = [...html.matchAll(/href="(\/[^"]*)"/g)].map((match) => match[1]);
+const invalidInternalLinks = internalHrefs.filter((href) => {
+  const pathname = new URL(href, "https://www.hmartbs.com").pathname.replace(/\/$/, "") || "/";
+  return !validRoutePaths.has(pathname) && pathname !== "/assets/hmart-logo-original.png" && pathname !== "/styles.css";
+});
+
 const checks = [
-  [html.includes("+91 79944 40164"), "phone number"], [html.includes("hmartbuildingsolutions@gmail.com"), "email"],
-  [html.includes("Thonnakkal"), "address"], [html.includes("Kooraveettil Agencies"), "sister concerns"],
-  [html.includes("Illustrative stock photography"), "stock label"], [js.includes("wa.me/917994440164?text="), "WhatsApp form"],
-  [html.includes('aria-label="Main navigation"'), "navigation label"], [html.includes('type="application/ld+json"'), "structured data"],
-  [["editorial", "tropical", "industrial", "gallery", "atelier", "future"].every((theme) => css.includes(`[data-theme=${theme}]`)), "six theme visual systems"],
-  [[home, materialsPage, servicesPage].every((page) => page.includes('src="./theme-init.js"')), "early theme initialisation"],
-  [js.includes("themeDefinitions") && js.includes("theme-preview") && js.includes("data-theme-choice"), "theme preview picker"],
-  [themeInit.includes('URLSearchParams(window.location.search).get("theme")') && themeInit.includes("hmart-preview-theme"), "URL and saved theme precedence"],
-  [js.includes("updateInternalLinks") && js.includes('searchParams.set("theme"'), "theme-preserving internal links"],
-  [css.includes("prefers-reduced-motion"), "reduced motion support"],
-  [html.includes("Site inspection & consultation"), "site inspection service"], [html.includes("Waterproofing"), "waterproofing service"],
-  [html.includes('src="./assets/hmart-logo-original.png"') && html.includes("brand-logo-official"), "exact official logo asset"],
-  [home.includes("materials.html") && materialsPage.includes("services.html") && servicesPage.includes("index.html"), "three-page navigation"],
-  [js.includes("services.html?material=") && js.includes('params.get("material")'), "cross-page material enquiry"],
-  [vercel.outputDirectory === "dist", "Vercel output directory"]
+  [routes.every((route) => sitemap.includes(`https://www.hmartbs.com${route ? `/${route}` : "/"}`)), "seven sitemap routes"],
+  [pages.every((page) => page.includes('aria-label="Main navigation"')), "accessible navigation on every page"],
+  [pages.every((page) => page.includes('src="/assets/hmart-logo-source.png"')), "exact source logo on every page"],
+  [pages.every((page) => page.includes('<meta name="description"')), "page descriptions"],
+  [pages.every((page) => page.includes('type="application/ld+json"')), "structured data"],
+  [html.includes("+91 79944 40164") && html.includes("hmartbuildingsolutions@gmail.com"), "verified contact details"],
+  [html.includes("Mangalapuram, Thonnakkal, Thiruvananthapuram, Kerala 695317"), "normalised address"],
+  [html.includes("Kooraveettil Agencies") && html.includes("Kooraveettil Builders") && html.includes("Kooraveettil Paints"), "sister concerns"],
+  [html.includes("No articles published yet") && html.includes("no invented posts"), "honest blog empty state"],
+  [html.includes("Roofing Shingles") && html.includes("Cement Boards") && html.includes("GI Roofing Sheets") && html.includes("Polycarbonate Roofing Sheets"), "roofing range"],
+  [html.includes("Hollow Bricks") && html.includes("AAC Bricks") && html.includes("Casuarina Poles") && html.includes("Construction Aggregates &amp; Sand"), "construction range"],
+  [html.includes("Planning & Documentation") && html.includes("Waterproofing") && html.includes("Site inspection"), "service range"],
+  [productAssets.length >= 17, "migrated source product images"],
+  [html.includes("Illustrative stock photography") && html.includes("Source-site product image"), "image provenance labels"],
+  [js.includes("data-filter") && js.includes("card.hidden"), "working material filters"],
+  [js.includes("Material of interest") && js.includes('params.get("product")'), "product enquiry prefill"],
+  [js.includes("wa.me/917994440164?text=") && js.includes("showModal"), "review-before-WhatsApp flow"],
+  [html.includes("google.com/maps/search") && html.includes("mailto:") && html.includes("tel:+917994440164"), "contact links"],
+  [css.includes("prefers-reduced-motion") && css.includes("@media(max-width:680px)"), "motion and mobile support"],
+  [invalidInternalLinks.length === 0 && !html.includes(".html\""), "clean internal links"],
+  [!html.includes("theme-preview") && !js.includes("themeDefinitions"), "obsolete theme preview absent"],
+  [audit.includes("Page-by-page inventory") && audit.includes("Migration checklist") && audit.includes("Issues, conflicts and confirmation list"), "content audit sections"]
 ];
-const failed = checks.filter(([ok]) => !ok);
-if (failed.length) { console.error(`Checks failed: ${failed.map(([, name]) => name).join(", ")}`); process.exit(1); }
-console.log(`Validated ${checks.length} content and accessibility requirements.`);
+
+const failed = checks.filter(([passed]) => !passed);
+if (failed.length) {
+  console.error(`Checks failed: ${failed.map(([, name]) => name).join(", ")}`);
+  process.exit(1);
+}
+
+console.log(`Validated ${checks.length} seven-page content, functionality and accessibility requirements.`);
