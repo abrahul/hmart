@@ -19,10 +19,10 @@ const escapeHtml = (value = "") => String(value).replace(/[&<>'"]/g, (character)
 function header(active) {
   return `<a class="skip-link" href="#main">Skip to content</a>
   <header class="site-header" data-header>
-    <a class="brand" href="/" aria-label="HMART Building Solutions home"><img src="/assets/hmart-logo-source.png" width="1818" height="421" alt="HMART Building Solutions - Elevate Your Dream with Elegance"></a>
-    <button class="menu-button" type="button" aria-expanded="false" aria-controls="main-navigation" aria-label="Open navigation"><span></span><span></span></button>
+    <a class="brand" href="/" aria-label="HMART Building Solutions home"><img src="/assets/hmart-logo-source.png" width="1818" height="421" alt="HMART Building Solutions - Elevate Your Dream with Elegance"><span class="brand-rule" aria-hidden="true"></span></a>
+    <button class="menu-button" type="button" aria-expanded="false" aria-controls="main-navigation" aria-label="Open navigation"><b>Menu</b><span></span><span></span></button>
     <nav class="main-nav" id="main-navigation" aria-label="Main navigation">${navigation.map(([label, href]) => `<a href="${href}"${active === href ? ' aria-current="page"' : ""}>${label}</a>`).join("")}</nav>
-    <a class="header-call" href="tel:${site.phoneHref}"><span>Talk to HMART</span>${site.phone}</a>
+    <a class="header-call" href="tel:${site.phoneHref}"><span>Project desk</span><strong>${site.phone}</strong><i aria-hidden="true">&#8599;</i></a>
   </header>`;
 }
 
